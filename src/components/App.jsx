@@ -16,12 +16,16 @@ class App extends React.Component {
     showModal: false,
     showLoader: false,
     isLoadingMore: false,
+    isVisibleBtn: false,
   };
 
   // деструктуризація з дефолтним значенням
   loadPhotos = ({ withReplace = true } = {}) => {
     API.getPhotos()
       .then(photosResponse => {
+        API.calculateTotalPages(photosResponse.total);
+        this.setState({ isVisibleBtn: API.isShowLoadMore });
+
         const photos = photosResponse.hits.map(hit => {
           const filterdHit = {};
           filterdHit.id = hit.id;
@@ -59,6 +63,7 @@ class App extends React.Component {
   // value What I Recive From Searchbar Input onSubmit
   onSubmit = value => {
     this.setState({ images: [], showLoader: true });
+    API.resetPage();
     API.query = value;
     this.loadPhotos();
   };
@@ -85,10 +90,12 @@ class App extends React.Component {
           toggleModal={this.toggleModal}
         />
         {this.state.showLoader && <Loader />}
-        <Button
-          isLoadingMore={this.state.isLoadingMore}
-          onClick={this.loadBtn}
-        />
+        {this.state.isVisibleBtn && (
+          <Button
+            isLoadingMore={this.state.isLoadingMore}
+            onClick={this.loadBtn}
+          />
+        )}
         {this.state.showModal && (
           <Modal
             closeModal={this.toggleModal}
